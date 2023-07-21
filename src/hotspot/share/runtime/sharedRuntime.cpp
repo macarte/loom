@@ -2240,6 +2240,28 @@ JRT_LEAF(void, SharedRuntime::reguard_yellow_pages())
   (void) JavaThread::current()->stack_overflow_state()->reguard_stack();
 JRT_END
 
+void SharedRuntime::monitor_enter_helper_new(oopDesc* obj, BasicLock* lock, JavaThread* current) {
+  JRT_BLOCK
+  Handle h_obj(current, obj);
+  // Pass the handle as argument, JavaCalls::call expects oop as jobjects
+  JavaValue result(T_VOID);
+  JavaCallArguments args(h_obj);
+  methodHandle mh(current, Universe::object_monitorEnter_method());
+  JavaCalls::call(&result, mh, &args, current);
+  JRT_BLOCK_END
+}
+
+void SharedRuntime::monitor_exit_helper_new(oopDesc* obj, BasicLock* lock, JavaThread* current) {
+  JRT_BLOCK
+  Handle h_obj(current, obj);
+  // Pass the handle as argument, JavaCalls::call expects oop as jobjects
+  JavaValue result(T_VOID);
+  JavaCallArguments args(h_obj);
+  methodHandle mh(current, Universe::object_monitorExit_method());
+  JavaCalls::call(&result, mh, &args, current);
+  JRT_BLOCK_END
+}
+
 void SharedRuntime::monitor_enter_helper(oopDesc* obj, BasicLock* lock, JavaThread* current) {
   if (!SafepointSynchronize::is_synchronizing()) {
     // Only try quick_enter() if we're not trying to reach a safepoint
@@ -2261,7 +2283,7 @@ void SharedRuntime::monitor_enter_helper(oopDesc* obj, BasicLock* lock, JavaThre
 
 // Handles the uncommon case in locking, i.e., contention or an inflated lock.
 JRT_BLOCK_ENTRY(void, SharedRuntime::complete_monitor_locking_C(oopDesc* obj, BasicLock* lock, JavaThread* current))
-  SharedRuntime::monitor_enter_helper(obj, lock, current);
+  SharedRuntime::monitor_enter_helper_new(obj, lock, current);
 JRT_END
 
 void SharedRuntime::monitor_exit_helper(oopDesc* obj, BasicLock* lock, JavaThread* current) {
@@ -2281,8 +2303,8 @@ void SharedRuntime::monitor_exit_helper(oopDesc* obj, BasicLock* lock, JavaThrea
 
 // Handles the uncommon cases of monitor unlocking in compiled code
 JRT_LEAF(void, SharedRuntime::complete_monitor_unlocking_C(oopDesc* obj, BasicLock* lock, JavaThread* current))
-  assert(current == JavaThread::current(), "pre-condition");
-  SharedRuntime::monitor_exit_helper(obj, lock, current);
+  //assert(current == JavaThread::current(), "pre-condition");
+  SharedRuntime::monitor_exit_helper_new(obj, lock, current);
 JRT_END
 
 #ifndef PRODUCT

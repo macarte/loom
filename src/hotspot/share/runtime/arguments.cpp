@@ -2886,7 +2886,7 @@ jint Arguments::parse_each_vm_init_arg(const JavaVMInitArgs* args, bool* patch_m
   }
 
   // Forced Xcomp
-  set_mode_flags(_comp);
+  //set_mode_flags(_comp);
 
   // PrintSharedArchiveAndExit will turn on
   //   -Xshare:on

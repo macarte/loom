@@ -4465,8 +4465,10 @@ void TemplateTable::monitorenter() {
     ExternalAddress fetch_addr((address) Universe::object_monitorEnter_addr());
     __ movptr(method, fetch_addr);
 
-    __ profile_call(rax);
-    __ profile_arguments_type(rax, rbx, rbcp, false);
+    if (!ObjectMonitorMode::java()) {
+      __ profile_call(rax);
+      __ profile_arguments_type(rax, rbx, rbcp, false);
+    }
 
     __ jump_from_interpreted(method, rdx);
 
@@ -4643,8 +4645,10 @@ void TemplateTable::monitorexit() {
     ExternalAddress fetch_addr((address) Universe::object_monitorExit_addr());
     __ movptr(method, fetch_addr);
 
-    __ profile_call(rax);
-    __ profile_arguments_type(rax, rbx, rbcp, false);
+    if (!ObjectMonitorMode::java()) {
+      __ profile_call(rax);
+      __ profile_arguments_type(rax, rbx, rbcp, false);
+    }
 
     __ jump_from_interpreted(rbx, rdx);
 

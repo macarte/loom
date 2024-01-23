@@ -515,7 +515,7 @@ bool InlineTree::pass_initial_checks(ciMethod* caller_method, int caller_bci, ci
 #else
       if (call_bc != Bytecodes::_invokedynamic && call_bc != Bytecodes::_monitorenter && call_bc != Bytecodes::_monitorexit) {
 #endif
-      int index = iter.get_index_u2_cpcache();
+      int index = iter.get_index_u2();
       if (!caller_method->is_klass_loaded(index, call_bc, true)) {
         return false;
       }
@@ -555,9 +555,9 @@ void InlineTree::print_inlining(ciMethod* callee_method, int caller_bci,
     }
   }
   CompileTask::print_inlining_ul(callee_method, inline_level(),
-                                               caller_bci, inline_msg);
+                                 caller_bci, inlining_result_of(success), inline_msg);
   if (C->print_inlining()) {
-    C->print_inlining(callee_method, inline_level(), caller_bci, inline_msg);
+    C->print_inlining(callee_method, inline_level(), caller_bci, inlining_result_of(success), inline_msg);
     guarantee(callee_method != nullptr, "would crash in CompilerEvent::InlineEvent::post");
     if (Verbose) {
       const InlineTree *top = this;

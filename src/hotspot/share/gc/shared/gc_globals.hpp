@@ -131,9 +131,11 @@
   product(bool, UseShenandoahGC, false,                                     \
           "Use the Shenandoah garbage collector")                           \
                                                                             \
+  /* notice: the max range value here is INT_MAX not UINT_MAX  */           \
+  /* to protect from overflows                                 */           \
   product(uint, ParallelGCThreads, 0,                                       \
           "Number of parallel threads parallel gc will use")                \
-          constraint(ParallelGCThreadsConstraintFunc,AfterErgo)             \
+          range(0, INT_MAX)                                                 \
                                                                             \
   product(bool, UseDynamicNumberOfGCThreads, true,                          \
           "Dynamically choose the number of threads up to a maximum of "    \
@@ -404,11 +406,6 @@
                                                                             \
   product(uint, ThresholdTolerance, 10,                                     \
           "Allowed collection cost difference between generations")         \
-          range(0, 100)                                                     \
-                                                                            \
-  product(uint, AdaptiveSizePolicyCollectionCostMargin, 50,                 \
-          "If collection costs are within margin, reduce both by full "     \
-          "delta")                                                          \
           range(0, 100)                                                     \
                                                                             \
   product(uint, YoungGenerationSizeIncrement, 20,                           \
@@ -682,10 +679,10 @@
   develop(uintx, GCExpandToAllocateDelayMillis, 0,                          \
           "Delay between expansion and allocation (in milliseconds)")       \
                                                                             \
-  product(uintx, GCDrainStackTargetSize, 64,                                \
+  product(uint, GCDrainStackTargetSize, 64,                                 \
           "Number of entries we will try to leave on the stack "            \
           "during parallel gc")                                             \
-          range(0, max_juint)                                               \
+          range(0, 8 * 1024)                                                \
                                                                             \
   product(uint, GCCardSizeInBytes, 512,                                     \
           "Card table entry size (in bytes) for card based collectors")     \

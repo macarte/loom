@@ -615,7 +615,9 @@ public class Object {
     private static final void monitorEnter(Object o) {
         // o is null-checked already
         try {
+            MonitorSupport.log("BEGIN monitorEnter");
             MonitorSupport.policy().monitorEnter(o);
+            MonitorSupport.log("  END monitorEnter");
         }
         catch (Throwable t) {
             MonitorSupport.abortException("monitorEnter", t);
@@ -626,7 +628,9 @@ public class Object {
     @ReservedStackAccess
     private static final void jniEnter(Object o) {
         try {
+            MonitorSupport.log("BEGIN jniEnter");
             Monitor.jniEnter(Thread.currentThread(), o);
+            MonitorSupport.log("  END jniEnter");
         }
         catch (Throwable t) {
             MonitorSupport.abortException("jniEnter", t);
@@ -649,7 +653,9 @@ public class Object {
     @ReservedStackAccess
     private static final void monitorExit(Object o) {
         try {
+            MonitorSupport.log("BEGIN monitorExit");
             MonitorSupport.policy().monitorExit(o);
+            MonitorSupport.log("  END monitorExit");
         }
         catch (Throwable t) {
             MonitorSupport.abortException("monitorExit", t);
@@ -660,7 +666,10 @@ public class Object {
     @ReservedStackAccess
     private static final void jniExit(Object o) {
         try {
+
+            MonitorSupport.log("BEGIN jniExit");
             Monitor.jniExit(Thread.currentThread(), o);
+            MonitorSupport.log("  END jniExit");
         }
         catch (Throwable t) {
             // IMSE is not a fatal error
@@ -674,8 +683,11 @@ public class Object {
     @ReservedStackAccess
     private static final void monitorExitAll(int count) {
         try {
+
+            MonitorSupport.log("BEGIN monitorExitAll");
             MonitorSupport.log_exitAll(count);
             MonitorSupport.policy().monitorExitAll(count);
+            MonitorSupport.log("  END monitorExitAll");
         }
         catch (Throwable t) {
             MonitorSupport.abortException("monitorExitAll", t);

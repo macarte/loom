@@ -95,9 +95,28 @@ void vframeArrayElement::fill_in(compiledVFrame* vf, bool realloc_failures) {
         if (monitor->owner_is_scalar_replaced()) {
           dest->set_obj(nullptr);
         } else {
-          assert(monitor->owner() == nullptr || !monitor->owner()->is_unlocked(), "object must be null or locked");
-          dest->set_obj(monitor->owner());
-          monitor->lock()->move_to(monitor->owner(), dest->lock());
+          /*if (monitor->owner() != nullptr && monitor->owner()->is_unlocked()) { 
+
+            //GrowableArray<MonitorInfo*>* tmp = vf->monitors();
+            monitor->zero_owner();
+          }*/
+          assert(monitor->owner() != nullptr, "object cannot be null");
+          if (!ObjectMonitorMode::java()) {
+            assert(monitor->owner() == nullptr || !monitor->owner()->is_unlocked(), "object must be null or locked");
+            dest->set_obj(monitor->owner());
+            monitor->lock()->move_to(monitor->owner(), dest->lock());
+          }
+          else
+          {
+            if (monitor->owner() != nullptr && monitor->owner()->is_unlocked() && index == list->length() - 1)
+            {
+              dest->set_obj(nullptr);
+            }
+            else
+            {
+             dest->set_obj(monitor->owner());             
+            }
+          }
         }
       }
     }

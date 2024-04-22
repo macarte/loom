@@ -25,6 +25,7 @@
 
 package java.lang;
 
+import jdk.internal.vm.annotation.ForceInline;
 import jdk.internal.vm.annotation.IntrinsicCandidate;
 import jdk.internal.vm.annotation.ReservedStackAccess;
 
@@ -289,6 +290,7 @@ final class MonitorSupport {
 
     static class Fast implements Policy {
 
+        @ForceInline
         @ReservedStackAccess
         public void monitorEnter(Object o) {
             if (syncEnabled == 0)
@@ -299,6 +301,7 @@ final class MonitorSupport {
             }
         }
 
+        @ForceInline
         @ReservedStackAccess
         public void monitorExit(Object o) {
             if (syncEnabled == 0)
@@ -377,10 +380,14 @@ final class MonitorSupport {
         // lowest level enter/exit via markWord ops
 
         private static boolean quickLock(Thread current, Object lockee) {
+            current.push(lockee);
+            //if (!current.pushFast(lockee)) {
+            //    return false;
+            //}
             if (casLockState(lockee, LOCKED, UNLOCKED)) {
-                current.push(lockee);
                 return true;
             }
+            current.pop(lockee);
             return false;
         }
 
@@ -398,6 +405,7 @@ final class MonitorSupport {
 
         // Attempted fast-path monitor entry and exit
 
+        @ForceInline
         static boolean quickEnter(Thread current, Object lockee) {
             while (true) {
                 int lockState = getLockState(lockee);
@@ -406,6 +414,9 @@ final class MonitorSupport {
                     if (current.lockCount(lockee) > 0) {
                         abort("Bad lockstack: lockee unlocked but on stack");
                     }
+                    //if (!current.canPushFast()) {
+                    //    return false;
+                    //}
                     if (quickLock(current, lockee)) {
                         return true;
                     }
@@ -415,6 +426,7 @@ final class MonitorSupport {
                     if (current.hasLockedDirect(lockee)) {
                         current.push(lockee);
                         return true;
+                        //return current.pushFast(lockee);
                     }
                     return false; // take slow path
                 case INFLATED:
@@ -426,6 +438,7 @@ final class MonitorSupport {
             }
         }
 
+        @ForceInline
         static boolean quickExit(Thread current, Object lockee) {
             while (true) {
                 int lockState = getLockState(lockee);

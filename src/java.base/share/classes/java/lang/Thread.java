@@ -2377,13 +2377,25 @@ public class Thread implements Runnable {
         MonitorSupport.log("Expanded thread lockStack to size " + lockStack.length);
     }
 
-    void push(Object lockee) {
+
+    boolean push(Object lockee, boolean allow_grow) {
         if (this != Thread.currentThread()) MonitorSupport.abort("invariant");
         if (lockStackPos == lockStack.length) {
-            grow();
+            if (allow_grow) {
+                grow();
+            } else {
+                return false;
+            }
         }
         lockStack[lockStackPos++] = lockee;
+        return true;
     }
+
+    void push(Object lockee) { push(lockee, true); }
+    
+    boolean pushFast(Object lockee) { return push(lockee, false); }
+
+    boolean canPushFast() { return lockStackPos < lockStack.length; }
 
     Object pop() {
         if (this != Thread.currentThread()) MonitorSupport.abort("invariant");
@@ -2440,11 +2452,13 @@ public class Thread implements Runnable {
 
     // This count is only useful for fast-locked lockees
     int lockCount(Object lockee) {
+        if (this != Thread.currentThread()) MonitorSupport.abort("invariant");
         if (lockee == null) MonitorSupport.abort("lockCount(null) was called!");
         int count = 0;
-        for (Object i : lockStack) {
-            if (i == lockee)
-                count++;
+        for(int i = 0; i < lockStackPos; ++i) {
+            if (lockStack[i] == lockee) {
+                count ++;
+            }
         }
         return count;
     }
@@ -2471,8 +2485,9 @@ public class Thread implements Runnable {
     // Queries if lockee is directly
     // in the lockStack,
     boolean hasLockedDirect(Object lockee) {
-        for (Object o : lockStack) {
-            if (o == lockee) {
+        if (this != Thread.currentThread()) MonitorSupport.abort("invariant");
+        for (int i = 0; i < lockStackPos; ++i) {
+            if (lockStack[i] == lockee) {
                  return true;
             }
         }
